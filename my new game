@@ -1,58 +1,186 @@
-<!doctype html>
+```html
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <meta name="theme-color" content="#211a3b">
-  <title>마요 러너</title>
-  <link rel="stylesheet" href="./src/style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>마요 러너 🐹</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#211a3b;color:#fff4dc;font-family:system-ui,sans-serif;text-align:center}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;gap:8px}
+h2{margin:0;color:#ffe5a2;font-size:22px}
+.stats{font-size:12px;color:#f8d9b2}
+.stats b{font-size:16px;color:#fff0a9}
+#gamebox{position:relative;width:min(100%,430px);margin:auto;border:3px solid #f8d393;border-radius:18px;overflow:hidden;background:#f39d9c;line-height:0}
+canvas{width:100%;height:auto;display:block;touch-action:none}
+#overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;background:#211a3bdc;line-height:1.4}
+#overlay.hidden{display:none}
+.hamster{font-size:65px;margin-bottom:8px}
+h1{font-size:38px;color:#fff0bc;margin:0 0 10px;text-shadow:0 4px #a65c78}
+#message{font-size:15px;white-space:pre-line;line-height:1.7}
+button{border:0;cursor:pointer;touch-action:manipulation;font-weight:bold}
+#start{background:linear-gradient(#ffecab,#ffc75e);color:#57354b;border-radius:30px;padding:14px 34px;font-size:19px;box-shadow:0 5px #b67572;margin:14px 0}
+#start:active,.controls button:active{transform:translateY(3px);box-shadow:0 2px #b67572}
+.help{font-size:11px;line-height:1.8;color:#e4d2ec}
+.hud{position:absolute;top:10px;left:12px;right:12px;display:flex;justify-content:space-between;font-size:14px;text-shadow:0 2px 5px #211a3b;pointer-events:none}
+.controls{width:min(100%,430px);margin:13px auto;display:grid;grid-template-columns:repeat(4,1fr);gap:9px;padding:0 4px}
+.controls button{height:55px;border-radius:14px;background:#fff0c8;color:#50334c;font-size:23px;box-shadow:0 4px #b67572}
+.controls button:nth-child(2),.controls button:nth-child(3){background:#f6c4d0}
+footer{font-size:12px;color:#c9b7d5;padding:0 0 18px}
+</style>
 </head>
 <body>
-  <main class="app">
-    <header class="topbar">
-      <div class="brand">
-        <span class="seed">✦</span>
-        <div>
-          <strong>마요 러너</strong>
-          <small>HAESSI STAR RUN</small>
-        </div>
-      </div>
-      <div class="stats">
-        <div><small>점수</small><b id="score">000000</b></div>
-        <div><small>최고 기록</small><b id="best">000000</b></div>
-      </div>
-    </header>
+<header>
+  <h2>🐹 마요 러너</h2>
+  <div class="stats">점수 <b id="score">0</b><br>최고 기록 <b id="best">0</b></div>
+</header>
 
-    <section class="game-wrap">
-      <canvas id="game" width="360" height="640"></canvas>
+<div id="gamebox">
+  <canvas id="game" width="360" height="640"></canvas>
+  <div class="hud"><span id="seeds">🌻 해씨 0</span><span id="distance">0 m</span></div>
+  <div id="overlay">
+    <div class="hamster">🐹</div>
+    <h1 id="title">마요 러너</h1>
+    <div id="message">해씨별의 노을길을 달려봐!<br>해씨를 모으고 장애물을 피하자 🌻</div>
+    <button id="start">스타트!</button>
+    <div class="help">← → 이동 · ↑ 점프 · ↓ 슬라이딩<br>모바일은 화면을 밀거나 아래 버튼 사용</div>
+  </div>
+</div>
 
-      <div id="overlay" class="overlay">
-        <div class="title-mark">🐹</div>
-        <p class="eyebrow">A LITTLE RUNNER</p>
-        <h1 id="overlay-title">마요 러너</h1>
-        <p id="overlay-copy">해씨를 모으고 장애물을 피해 달려봐!</p>
-        <button id="start">스타트!</button>
-        <small class="help">
-          ← → 레인 이동 · ↑ 점프 · ↓ 슬라이딩<br>
-          모바일은 스와이프 또는 아래 버튼
-        </small>
-      </div>
+<div class="controls">
+  <button data-move="left">◀</button>
+  <button data-move="jump">▲</button>
+  <button data-move="slide">▼</button>
+  <button data-move="right">▶</button>
+</div>
+<footer>따뜻한 노을빛 해씨별에서, 마요의 신나는 달리기!</footer>
 
-      <div class="hud-row">
-        <span id="seed-count">🌻 0</span>
-        <span id="distance">0 m</span>
-      </div>
-    </section>
-
-    <nav class="mobile-controls">
-      <button data-action="left">◀</button>
-      <button data-action="jump">▲</button>
-      <button data-action="slide">▼</button>
-      <button data-action="right">▶</button>
-    </nav>
-
-    <p class="footer-note">해씨별의 노을길을 달리는 작은 마요</p>
-  </main>
-  <script src="./src/game.js"></script>
+<script>
+const c=document.getElementById('game'),x=c.getContext('2d');
+const W=360,H=640;
+const $=id=>document.getElementById(id);
+let mode='ready',last=0,time=0,score=0,seeds=0,dist=0,best=Number(localStorage.getItem('mayoBest')||0);
+let speed=220,road=0,spawn=0,items=[],bits=[];
+const lanes=[112,180,248];
+const mayo={lane:1,x:180,jump:0,jv:0,slide:0,anim:0};
+$('best').textContent=best;
+function start(){
+ mode='run';time=score=seeds=dist=road=0;speed=220;spawn=.5;items=[];bits=[];
+ mayo.lane=1;mayo.x=180;mayo.jump=0;mayo.jv=0;mayo.slide=0;mayo.anim=0;
+ $('score').textContent='0';$('seeds').textContent='🌻 해씨 0';$('distance').textContent='0 m';
+ $('title').textContent='마요 러너';$('start').textContent='스타트!';
+ $('overlay').classList.add('hidden');
+}
+$('start').onclick=start;
+function move(a){
+ if(mode!=='run')return;
+ if(a==='left')mayo.lane=Math.max(0,mayo.lane-1);
+ if(a==='right')mayo.lane=Math.min(2,mayo.lane+1);
+ if(a==='jump'&&mayo.jump===0&&mayo.slide<=0){mayo.jv=470;burst(mayo.x,500,'#fff0a5',5)}
+ if(a==='slide'&&mayo.jump===0)mayo.slide=.65;
+}
+document.querySelectorAll('[data-move]').forEach(b=>b.onpointerdown=e=>{e.preventDefault();move(b.dataset.move)});
+window.addEventListener('keydown',e=>{
+ const k={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'jump',ArrowDown:'slide',' ':'jump'};
+ if(k[e.key]){e.preventDefault();move(k[e.key])}
+ if((e.key==='Enter'||e.key===' ')&&mode!=='run')start();
+});
+let tx=0,ty=0;
+c.addEventListener('touchstart',e=>{tx=e.changedTouches[0].clientX;ty=e.changedTouches[0].clientY},{passive:true});
+c.addEventListener('touchend',e=>{
+ if(mode!=='run')return;
+ const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;
+ if(Math.max(Math.abs(dx),Math.abs(dy))<18)return;
+ if(Math.abs(dx)>Math.abs(dy))move(dx<0?'left':'right');
+ else move(dy<0?'jump':'slide');
+},{passive:true});
+function r(a,b,w,h,col){x.fillStyle=col;x.fillRect(Math.round(a),Math.round(b),Math.round(w),Math.round(h))}
+function burst(a,b,col,n){for(let i=0;i<n;i++)bits.push({x:a,y:b,vx:(Math.random()-.5)*150,vy:-Math.random()*130,life:.6,col})}
+function background(){
+ let g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'#f49aab');g.addColorStop(.4,'#f8bd91');g.addColorStop(1,'#72547f');x.fillStyle=g;x.fillRect(0,0,W,H);
+ r(238,72,46,46,'#ffe19c');r(230,80,62,30,'#ffe19c');r(244,64,34,62,'#ffe19c');
+ x.fillStyle='#a16e99';x.beginPath();x.moveTo(0,280);x.lineTo(60,220);x.lineTo(120,285);x.lineTo(200,225);x.lineTo(280,280);x.lineTo(360,230);x.lineTo(360,410);x.lineTo(0,410);x.fill();
+ x.fillStyle='#51465f';x.beginPath();x.moveTo(122,285);x.lineTo(238,285);x.lineTo(355,640);x.lineTo(5,640);x.fill();
+ for(let y=-60+road%65;y<H;y+=65){let t=(y-285)/355;if(t<0)continue;let half=9+166*t;r(180-half,y,half*2,3+5*t,'#8e7283')}
+ for(let y=-35+road%75;y<H;y+=75){let t=(y-285)/355;if(t<0)continue;let w=1+3*t;r(180-58*t-w/2,y,w,24*t+2,'#cdb4ae');r(180+58*t-w/2,y,w,24*t+2,'#cdb4ae')}
+}
+function mayoDraw(){
+ let y=520-mayo.jump+Math.sin(mayo.anim*13)*2;
+ x.save();x.translate(Math.round(mayo.x),Math.round(y+(mayo.slide>0?13:0)));
+ r(-18,16,36,7,'#40304a');
+ r(-13,7,9,8,'#c77c51');r(5,7,9,8,'#c77c51');
+ r(-17,-15,34,24,'#d99453');r(-14,-12,28,21,'#e7aa67');r(-10,-7,20,15,'#f6e6c6');
+ r(-16,-25,9,10,'#d99453');r(-14,-23,5,6,'#e99a9b');r(7,-25,9,10,'#d99453');r(9,-23,5,6,'#e99a9b');
+ r(-16,-28,32,23,'#e7aa67');r(-12,-31,24,7,'#e7aa67');
+ r(-2,-29,5,5,'#fff8e8');r(-1,-31,3,2,'#fff8e8');
+ r(-9,-23,4,5,'#30233a');r(5,-23,4,5,'#30233a');
+ r(-12,-17,5,4,'#f6c0a3');r(7,-17,5,4,'#f6c0a3');
+ r(-2,-16,5,4,'#d77c7c');r(-1,-12,3,2,'#fff0df');
+ x.restore();
+}
+function seedDraw(o){
+ let s=o.s,a=o.x,b=o.y;
+ r(a-5*s,b-8*s,10*s,16*s,'#b97845');r(a-4*s,b-6*s,8*s,12*s,'#f8d17a');
+ r(a-2*s,b-2*s,2*s,2*s,'#54374a');r(a+2*s,b-2*s,2*s,2*s,'#54374a');r(a-2*s,b+3*s,4*s,1.5*s,'#cf7c7c');
+ r(a+6*s,b-10*s,2*s,2*s,'#fff5cf');
+}
+function obstacleDraw(o){
+ let a=o.x,b=o.y,s=o.s;
+ if(o.type==='box'){
+  r(a-16*s,b-14*s,32*s,28*s,'#8b5368');r(a-13*s,b-12*s,26*s,24*s,'#e8ad77');r(a-10*s,b-9*s,20*s,4*s,'#ffdaa0');
+  r(a-4*s,b-9*s,8*s,19*s,'#bd795f');r(a-9*s,b-2*s,3*s,3*s,'#49334c');r(a+6*s,b-2*s,3*s,3*s,'#49334c');
+  r(a-11*s,b+2*s,3*s,2*s,'#f28e9b');r(a+8*s,b+2*s,3*s,2*s,'#f28e9b');r(a-3*s,b+4*s,6*s,2*s,'#fff0cf');
+ }else if(o.type==='bar'){
+  r(a-25*s,b-18*s,50*s,9*s,'#704a78');r(a-22*s,b-17*s,44*s,6*s,'#f7c2c6');
+  r(a-19*s,b-16*s,8*s,4*s,'#fff0bd');r(a-3*s,b-16*s,8*s,4*s,'#fff0bd');r(a+13*s,b-16*s,8*s,4*s,'#fff0bd');
+  r(a-21*s,b-9*s,6*s,22*s,'#d99473');r(a+15*s,b-9*s,6*s,22*s,'#d99473');
+  r(a-7*s,b-15*s,3*s,3*s,'#49334c');r(a+4*s,b-15*s,3*s,3*s,'#49334c');
+ }else{
+  r(a-18*s,b-4*s,36*s,14*s,'#a99bcf');r(a-14*s,b-10*s,28*s,15*s,'#d8c9f2');r(a-9*s,b-14*s,18*s,10*s,'#e9defb');
+  r(a-8*s,b-1*s,3*s,3*s,'#49334c');r(a+5*s,b-1*s,3*s,3*s,'#49334c');r(a-4*s,b+4*s,8*s,2*s,'#b97792');
+  r(a-12*s,b+1*s,4*s,2*s,'#f4a8bc');r(a+8*s,b+1*s,4*s,2*s,'#f4a8bc');
+ }
+}
+function spawn(){
+ const lane=Math.floor(Math.random()*3),roll=Math.random();
+ const type=roll<.52?'box':roll<.76?'bar':'rock';
+ items.push({kind:'obstacle',type,lane,y:290,x:lanes[lane],s:.45});
+ if(Math.random()<.8){let sl=Math.floor(Math.random()*3);for(let i=0;i<5;i++)items.push({kind:'seed',lane:sl,y:240-i*27,x:lanes[sl],s:.55})}
+}
+function over(){
+ mode='over';best=Math.max(best,Math.floor(score));localStorage.setItem('mayoBest',best);$('best').textContent=best;
+ $('title').textContent='앗! 마요가 멈췄어';$('message').textContent=`점수 ${Math.floor(score)} · 해씨 ${seeds}개\n한 번 더 달려볼까?`;
+ $('start').textContent='다시하기';$('overlay').classList.remove('hidden');
+}
+function update(dt){
+ if(mode!=='run')return;
+ time+=dt;speed=Math.min(390,220+time*4);dist+=speed*dt*.075;score+=speed*dt*.11;road=(road+speed*dt)%1000;
+ mayo.anim+=dt;mayo.x+=(lanes[mayo.lane]-mayo.x)*Math.min(1,dt*14);
+ if(mayo.jv!==0||mayo.jump>0){mayo.jump+=mayo.jv*dt;mayo.jv-=1150*dt;if(mayo.jump<=0){mayo.jump=0;mayo.jv=0}}
+ if(mayo.slide>0)mayo.slide-=dt;
+ spawn-=dt;if(spawn<=0){spawn();spawn=Math.max(.58,1.12-(speed-220)/500)+(Math.random()-.5)*.2}
+ for(const o of items){
+  o.y+=speed*dt*(o.kind==='seed'?1.03:1);o.s=.22+Math.max(.25,(o.y-280)/360)*.9;o.x=lanes[o.lane];
+  if(o.kind==='seed'&&!o.got&&o.lane===mayo.lane&&Math.abs(o.y-520)<25){o.got=true;seeds++;score+=25;burst(o.x,o.y,'#ffe58a',5)}
+  if(o.kind==='obstacle'&&!o.hit&&o.lane===mayo.lane&&Math.abs(o.y-520)<23){
+   const safe=(o.type==='bar'&&mayo.slide>0)||(o.type!=='bar'&&mayo.jump>48);
+   if(!safe){o.hit=true;over();return}o.hit=true;
+  }
+ }
+ items=items.filter(o=>o.y<H+60&&!o.got);
+ bits.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=240*dt;p.life-=dt});bits=bits.filter(p=>p.life>0);
+ $('score').textContent=Math.floor(score);$('seeds').textContent='🌻 해씨 '+seeds;$('distance').textContent=Math.floor(dist)+' m';
+}
+function draw(){
+ x.clearRect(0,0,W,H);background();
+ items.slice().sort((a,b)=>a.y-b.y).forEach(o=>o.kind==='seed'?seedDraw(o):obstacleDraw(o));
+ bits.forEach(p=>{x.globalAlpha=Math.min(1,p.life*3);r(p.x,p.y,3,3,p.col)});x.globalAlpha=1;
+ mayoDraw();
+}
+function frame(t){let dt=Math.min(.035,(t-last)/1000||0);last=t;update(dt);draw();requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+</script>
 </body>
 </html>
+```
